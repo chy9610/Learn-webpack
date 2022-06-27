@@ -1,10 +1,14 @@
 const path = require("path");
+const os = require('os');
 const HtmlWebpackPlugin = require("html-webpack-plugin"); // 浏览器渲染
 const { CleanWebpackPlugin } = require("clean-webpack-plugin"); // 清除上次的打包文件
 const MiniCssExtractPlugin = require("mini-css-extract-plugin"); // css 文件整合
 const CopyWebpackPlugin = require("copy-webpack-plugin"); // 将public文件夹下的静态js文件,拷贝至build文件夹中
+const Happypack = require('happypack'); // 多线程打包
 // const OptimizeCssPlugin = require("optimize-css-assets-webpack-plugin"); // 压缩打包之后的css文件
 // const autoprefixer = require("autoprefixer"); // 自动补充名称
+
+const happyThreadPool = Happypack.ThreadPool({size: os.cpus().length})
 
 const rootDir = process.cwd(); // 根目录
 
@@ -75,6 +79,11 @@ module.exports = {
     }),
     new MiniCssExtractPlugin({
       filename: "css/[name].css",
+    }),
+    new Happypack({
+      id:'js',
+      use: ["babel-loader"],
+      threadPool: happyThreadPool
     }),
     // new OptimizeCssPlugin(),
     new CleanWebpackPlugin(),
