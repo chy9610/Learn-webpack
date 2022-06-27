@@ -1,0 +1,22 @@
+{
+  "name": "learn_webpack",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/chy9610/Learn-webpack.git"
+  },
+  "keywords": [
+    "lingLing1211+"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chy9610/Learn-webpack/issues"
+  },
+  "homepage": "https://github.com/chy9610/Learn-webpack#readme"
+}
