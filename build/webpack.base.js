@@ -1,18 +1,17 @@
 const path = require("path");
-const os = require('os');
-const HtmlWebpackPlugin = require("html-webpack-plugin"); // 浏览器渲染
+const os = require("os");
+const HtmlWebpackPlugin = require("html-webpack-plugin"); // 预编译资源模块 (浏览器渲染)
 const { CleanWebpackPlugin } = require("clean-webpack-plugin"); // 清除上次的打包文件
 const MiniCssExtractPlugin = require("mini-css-extract-plugin"); // css 文件整合
 const CopyWebpackPlugin = require("copy-webpack-plugin"); // 将public文件夹下的静态js文件,拷贝至build文件夹中
-const Happypack = require('happypack'); // 多线程打包
+const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer"); // 依赖包分析
+const threadLoader = require("thread-loader");
 // const OptimizeCssPlugin = require("optimize-css-assets-webpack-plugin"); // 压缩打包之后的css文件
-// const autoprefixer = require("autoprefixer"); // 自动补充名称
-
-const happyThreadPool = Happypack.ThreadPool({size: os.cpus().length})
 
 const rootDir = process.cwd(); // 根目录
 
 module.exports = {
+  stats: "errors-only",
   entry: path.resolve(rootDir, "src/main"), // 输入
   output: {
     // 输出
@@ -20,6 +19,7 @@ module.exports = {
     filename: "bundle.[contenthash:8].js",
   },
   resolve: {
+    extensions: [".js", ".json"],
     alias: {
       "@public": path.resolve(rootDir, "public/"),
       "@src": path.resolve(rootDir, "src/"),
@@ -29,7 +29,7 @@ module.exports = {
     rules: [
       {
         test: /\.(js|jsx)$/, // 匹配规则
-        use: "babel-loader", // 解析
+        use: ["thread-loader", "babel-loader"], // 解析
         include: path.resolve(rootDir, "src"), // 匹配特定条件
         exclude: "/node_nodules/", //排除特定条件
       },
@@ -37,6 +37,7 @@ module.exports = {
         test: /\.(le|c)ss$/,
         use: [
           "style-loader",
+          // "thread-loader",
           "css-loader",
           {
             loader: "postcss-loader",
@@ -52,7 +53,21 @@ module.exports = {
       },
       {
         test: /\.(png|jpe?g|gif)$/i, // 匹配规则
-        use: "file-loader", // 解析
+        use: [
+          {
+            loader: "file-loader",
+            options: {
+              name() {
+                if (process.env.NODE_ENV === "development") {
+                  return "[path][name].[ext]";
+                }
+                return "[contenthash].[ext]";
+              },
+              outputPath: "assets",
+              publicPath: "assets",
+            },
+          },
+        ], // 解析
         exclude: "/node_nodules/", //排除特定条件
       },
     ],
@@ -80,12 +95,11 @@ module.exports = {
     new MiniCssExtractPlugin({
       filename: "css/[name].css",
     }),
-    new Happypack({
-      id:'js',
-      use: ["babel-loader"],
-      threadPool: happyThreadPool
-    }),
+    new BundleAnalyzerPlugin(),
     // new OptimizeCssPlugin(),
-    new CleanWebpackPlugin(),
+    // new CleanWebpackPlugin(),
   ],
+  optimization: {
+    runtimeChunk: "single",
+  },
 };
